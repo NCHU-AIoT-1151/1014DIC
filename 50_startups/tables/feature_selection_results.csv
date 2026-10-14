@@ -1,0 +1,10 @@
+Method,n_features,Selected,R2,RMSE
+"SelectKBest (F-test, k=2)",2,"R&D Spend, Marketing Spend",0.9361845277609238,9220.48582879011
+Backward SFS (n=2),2,"R&D Spend, Marketing Spend",0.9361845277609238,9220.48582879011
+RFE (n=2),2,"R&D Spend, Marketing Spend",0.9361845277609238,9220.48582879011
+RFECV,2,"R&D Spend, Marketing Spend",0.9361845277609238,9220.48582879011
+Forward SFS (n=2),2,"R&D Spend, Marketing Spend",0.9361845277609238,9220.48582879011
+ElasticNet (SelectFromModel),3,"R&D Spend, Marketing Spend, State_Florida",0.9352128709646398,9290.41637627005
+Lasso (SelectFromModel),3,"R&D Spend, Marketing Spend, State_Florida",0.9352128709646398,9290.41637627005
+All features,5,"R&D Spend, Administration, Marketing Spend, State_Florida, State_New York",0.9351382879173034,9295.762409273115
+RandomForest importance,1,R&D Spend,0.9214713948454598,10228.330503259165

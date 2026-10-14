@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive CRISP-DM MLR explorer: 50 Startups vs Boston Housing, 5 feature selection algorithms.">
+<title>MLR Explorer — 50 Startups &amp; Boston Housing</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0b14;--surface:#111220;--card:#181929;--border:#252740;--text:#eceefb;--muted:#8b8fb8;--acc1:#4f46e5;--acc2:#0d9488;--good:#059669;--goodbg:#064e3b;--warn:#d97706;--warnbg:#4a3305;--radius:14px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:60px;position:sticky;top:0;z-index:100}
+.logo{font-size:18px;font-weight:700;letter-spacing:-0.5px;white-space:nowrap}
+.logo .dot{color:var(--acc1)}
+.ds-select{display:flex;align-items:center;gap:10px;margin-left:auto}
+.ds-select label{font-size:13px;color:var(--muted);font-weight:500}
+select#datasetPicker{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:7px 12px;font:500 13px 'Inter',sans-serif;cursor:pointer;outline:none;transition:border-color .2s}
+select#datasetPicker:focus{border-color:var(--acc1)}
+.w{max-width:1060px;margin:0 auto;padding:24px 16px 52px}
+.hero{border-radius:var(--radius);padding:28px 28px 22px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero.startup{background:linear-gradient(135deg,#1e1b6b 0%,#4338ca 55%,#7c3aed 100%)}
+.hero.boston{background:linear-gradient(135deg,#0f4c3a 0%,#0d9488 55%,#0891b2 100%)}
+.hero h2{font-size:26px;font-weight:700;margin-bottom:8px;color:#fff}
+.hero p{color:rgba(255,255,255,.88);font-size:14px;line-height:1.65;max-width:680px;margin-bottom:14px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:4px 12px;font-size:12px;color:#fff;font-weight:500}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:16px}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+button.ab{font:500 13px 'Inter',sans-serif;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 14px;cursor:pointer;transition:.18s}
+button.ab:hover{border-color:var(--muted)}
+button.ab.on-s{background:var(--acc1);border-color:var(--acc1);color:#fff}
+button.ab.on-b{background:var(--acc2);border-color:var(--acc2);color:#fff}
+button.ab.best{border-color:var(--good)}
+button.ab.best.on-s,button.ab.best.on-b{background:var(--good)}
+button.ab.cliff{border-color:var(--warn)}
+button.ab.cliff.on-s,button.ab.cliff.on-b{background:var(--warn);color:#fff}
+button.ab small{opacity:.7;margin-left:5px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:16px}
+.kpi .card{margin:0;transition:.2s}
+.kpi .card:hover{border-color:var(--muted)}
+.kval{display:block;font-size:22px;font-weight:700;margin:4px 0;letter-spacing:-0.5px}
+.ksub{font-size:12px;color:var(--muted)}
+.chip{display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px 10px;margin:0 6px 5px 0;font-size:13px}
+.note{border-radius:10px;padding:11px 15px;font-size:13px;margin-top:12px}
+.note.g{background:var(--goodbg);color:#34d399}.note.w{background:var(--warnbg);color:#fbbf24}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+svg{width:100%;height:auto;display:block}svg text{fill:var(--muted);font-size:11px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+tr.sel td{background:rgba(255,255,255,.04);font-weight:600}
+.foot{color:var(--muted);font-size:12px;margin-top:24px;line-height:1.6}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin-top:8px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.info-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--muted);margin-top:14px;line-height:1.7}
+.info-box strong{color:var(--text)}
+.sep{height:1px;background:var(--border);margin:18px 0}
+</style></head>
+<body>
+<div class="topbar">
+  <div class="logo">&#128202; MLR<span class="dot">.</span>Explorer</div>
+  <div class="ds-select">
+    <label for="datasetPicker">Dataset:</label>
+    <select id="datasetPicker" onchange="switchDS(this.value)">
+      <option value="startup">&#128640; 50 Startups</option>
+      <option value="boston">&#127968; Boston Housing</option>
+    </select>
+  </div>
+</div>
+<div class="w">
+  <div class="hero startup" id="heroDiv">
+    <h2 id="heroTitle">&#128640; 50 Startups — Feature Selection Explorer</h2>
+    <p id="heroDesc">Compare 5 feature selection algorithms across k = 1…5.</p>
+    <div class="pills" id="pills"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">1. Select feature selection algorithm</div>
+    <div class="row" id="mb"></div>
+    <div id="kwrap"><div class="sep"></div>
+      <div class="lbl">2. Number of features (k)</div>
+      <div class="row" id="kb"></div>
+    </div>
+  </div>
+  <div id="single">
+    <div class="kpi" id="kpi"></div>
+    <div class="card"><div class="lbl" id="plbl"></div><div id="pred"></div><div class="note" id="note"></div></div>
+  </div>
+  <div class="card"><div class="charts">
+    <div><div class="lbl">RMSE by k — lower is better</div><svg id="c1" viewBox="0 0 460 250"></svg></div>
+    <div><div class="lbl">R² by k — higher is better</div><svg id="c2" viewBox="0 0 460 250"></svg></div>
+  </div><div class="leg" id="leg"></div></div>
+  <div class="card"><div class="lbl" id="tl"></div><div class="sc" id="tb"></div></div>
+  <div id="infoBox"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const STARTUP_DATA={"order": ["Lasso (L1 Ranking)", "Forward SFS", "RFE", "ElasticNet", "Exhaustive Search"], "src": "synthetic demo data (same schema)", "n_test": 10, "m": {"Lasso (L1 Ranking)": {"1": {"f": ["R&D Spend"], "rmse": 10228.33, "r2": 0.9215, "adj": 0.9117, "mae": 8152.58, "F": 1007.4, "p": 5.835098432099384e-29}, "2": {"f": ["R&D Spend", "Marketing Spend"], "rmse": 9220.49, "r2": 0.9362, "adj": 0.918, "mae": 7116.72, "F": 642.1, "p": 1.8771714248163632e-29}, "3": {"f": ["R&D Spend", "Marketing Spend", "State_Florida"], "rmse": 9290.42, "r2": 0.9352, "adj": 0.9028, "mae": 7178.95, "F": 428.0, "p": 3.36411506286143e-28}, "4": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration"], "rmse": 9295.58, "r2": 0.9351, "adj": 0.8833, "mae": 7389.52, "F": 315.6, "p": 6.273272693342806e-27}, "5": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration", "State_New York"], "rmse": 9295.76, "r2": 0.9351, "adj": 0.8541, "mae": 7438.07, "F": 245.8, "p": 1.1562719099880957e-25}}, "Forward SFS": {"1": {"f": ["R&D Spend"], "rmse": 10228.33, "r2": 0.9215, "adj": 0.9117, "mae": 8152.58, "F": 1007.4, "p": 5.835098432099384e-29}, "2": {"f": ["R&D Spend", "Marketing Spend"], "rmse": 9220.49, "r2": 0.9362, "adj": 0.918, "mae": 7116.72, "F": 642.1, "p": 1.8771714248163632e-29}, "3": {"f": ["R&D Spend", "Marketing Spend", "State_New York"], "rmse": 9227.94, "r2": 0.9361, "adj": 0.9041, "mae": 7310.21, "F": 423.2, "p": 4.1006951265366095e-28}, "4": {"f": ["R&D Spend", "Administration", "Marketing Spend", "State_New York"], "rmse": 9216.27, "r2": 0.9362, "adj": 0.8852, "mae": 7468.68, "F": 310.0, "p": 8.529099781156253e-27}, "5": {"f": ["R&D Spend", "Administration", "Marketing Spend", "State_Florida", "State_New York"], "rmse": 9295.76, "r2": 0.9351, "adj": 0.8541, "mae": 7438.07, "F": 245.8, "p": 1.1562719099880732e-25}}, "RFE": {"1": {"f": ["R&D Spend"], "rmse": 10228.33, "r2": 0.9215, "adj": 0.9117, "mae": 8152.58, "F": 1007.4, "p": 5.835098432099384e-29}, "2": {"f": ["R&D Spend", "Marketing Spend"], "rmse": 9220.49, "r2": 0.9362, "adj": 0.918, "mae": 7116.72, "F": 642.1, "p": 1.8771714248163632e-29}, "3": {"f": ["R&D Spend", "Marketing Spend", "State_Florida"], "rmse": 9290.42, "r2": 0.9352, "adj": 0.9028, "mae": 7178.95, "F": 428.0, "p": 3.36411506286143e-28}, "4": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration"], "rmse": 9295.58, "r2": 0.9351, "adj": 0.8833, "mae": 7389.52, "F": 315.6, "p": 6.273272693342806e-27}, "5": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration", "State_New York"], "rmse": 9295.76, "r2": 0.9351, "adj": 0.8541, "mae": 7438.07, "F": 245.8, "p": 1.1562719099880957e-25}}, "ElasticNet": {"1": {"f": ["R&D Spend"], "rmse": 10228.33, "r2": 0.9215, "adj": 0.9117, "mae": 8152.58, "F": 1007.4, "p": 5.835098432099384e-29}, "2": {"f": ["R&D Spend", "Marketing Spend"], "rmse": 9220.49, "r2": 0.9362, "adj": 0.918, "mae": 7116.72, "F": 642.1, "p": 1.8771714248163632e-29}, "3": {"f": ["R&D Spend", "Marketing Spend", "State_Florida"], "rmse": 9290.42, "r2": 0.9352, "adj": 0.9028, "mae": 7178.95, "F": 428.0, "p": 3.36411506286143e-28}, "4": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration"], "rmse": 9295.58, "r2": 0.9351, "adj": 0.8833, "mae": 7389.52, "F": 315.6, "p": 6.273272693342806e-27}, "5": {"f": ["R&D Spend", "Marketing Spend", "State_Florida", "Administration", "State_New York"], "rmse": 9295.76, "r2": 0.9351, "adj": 0.8541, "mae": 7438.07, "F": 245.8, "p": 1.1562719099880957e-25}}, "Exhaustive Search": {"1": {"f": ["R&D Spend"], "rmse": 10228.33, "r2": 0.9215, "adj": 0.9117, "mae": 8152.58, "F": 1007.4, "p": 5.835098432099384e-29}, "2": {"f": ["R&D Spend", "Marketing Spend"], "rmse": 9220.49, "r2": 0.9362, "adj": 0.918, "mae": 7116.72, "F": 642.1, "p": 1.8771714248163632e-29}, "3": {"f": ["R&D Spend", "Marketing Spend", "State_New York"], "rmse": 9227.94, "r2": 0.9361, "adj": 0.9041, "mae": 7310.21, "F": 423.2, "p": 4.1006951265366095e-28}, "4": {"f": ["R&D Spend", "Administration", "Marketing Spend", "State_New York"], "rmse": 9216.27, "r2": 0.9362, "adj": 0.8852, "mae": 7468.68, "F": 310.0, "p": 8.529099781156253e-27}, "5": {"f": ["R&D Spend", "Administration", "Marketing Spend", "State_Florida", "State_New York"], "rmse": 9295.76, "r2": 0.9351, "adj": 0.8541, "mae": 7438.07, "F": 245.8, "p": 1.1562719099880732e-25}}}};
+const BOSTON_DATA={"order": ["Lasso (L1 Ranking)", "Forward SFS", "RFE", "ElasticNet", "Exhaustive Search"], "src": "synthetic demo data (Boston Housing schema)", "n_test": 102, "n_features_total": 13, "m": {"Lasso (L1 Ranking)": {"1": {"f": ["LSTAT"], "rmse": 6.9954, "r2": 0.4663, "adj": 0.461, "mae": 5.6852, "F": 215.18, "p": 2.5333110268086736e-39}, "2": {"f": ["LSTAT", "NOX"], "rmse": 6.3041, "r2": 0.5666, "adj": 0.5578, "mae": 4.8563, "F": 174.82, "p": 2.5514150135443486e-55}, "3": {"f": ["LSTAT", "NOX", "DIS"], "rmse": 5.5038, "r2": 0.6697, "adj": 0.6595, "mae": 4.333, "F": 174.08, "p": 3.3509339537244094e-72}, "4": {"f": ["LSTAT", "NOX", "DIS", "RM"], "rmse": 4.2342, "r2": 0.8045, "adj": 0.7964, "mae": 3.3026, "F": 216.9, "p": 1.135694346487921e-98}, "5": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO"], "rmse": 3.5349, "r2": 0.8637, "adj": 0.8566, "mae": 2.8237, "F": 285.95, "p": 2.653877357737803e-129}, "6": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B"], "rmse": 3.4551, "r2": 0.8698, "adj": 0.8616, "mae": 2.7601, "F": 263.96, "p": 3.5267115180832185e-135}, "7": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN"], "rmse": 3.2906, "r2": 0.8819, "adj": 0.8731, "mae": 2.5997, "F": 238.07, "p": 1.2420124292972688e-137}, "8": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS"], "rmse": 3.1863, "r2": 0.8893, "adj": 0.8798, "mae": 2.492, "F": 219.47, "p": 3.167840968931237e-140}, "9": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM"], "rmse": 3.0412, "r2": 0.8991, "adj": 0.8893, "mae": 2.4082, "F": 198.91, "p": 1.4260011423205796e-140}, "10": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS"], "rmse": 3.0121, "r2": 0.9011, "adj": 0.8902, "mae": 2.3639, "F": 180.03, "p": 5.58424476605164e-140}, "11": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE"], "rmse": 3.0262, "r2": 0.9001, "adj": 0.8879, "mae": 2.3656, "F": 163.46, "p": 6.231326818932881e-139}, "12": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD"], "rmse": 3.0306, "r2": 0.8998, "adj": 0.8863, "mae": 2.3701, "F": 149.54, "p": 7.488077988536349e-138}, "13": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD", "TAX"], "rmse": 3.0085, "r2": 0.9013, "adj": 0.8867, "mae": 2.3535, "F": 138.31, "p": 4.515702542638232e-137}}, "Forward SFS": {"1": {"f": ["LSTAT"], "rmse": 6.9954, "r2": 0.4663, "adj": 0.461, "mae": 5.6852, "F": 215.18, "p": 2.5333110268086736e-39}, "2": {"f": ["NOX", "LSTAT"], "rmse": 6.3041, "r2": 0.5666, "adj": 0.5578, "mae": 4.8563, "F": 174.82, "p": 2.5514150135443486e-55}, "3": {"f": ["NOX", "RM", "LSTAT"], "rmse": 5.3508, "r2": 0.6878, "adj": 0.6782, "mae": 4.1284, "F": 174.62, "p": 2.357789488078833e-72}, "4": {"f": ["NOX", "RM", "DIS", "LSTAT"], "rmse": 4.2342, "r2": 0.8045, "adj": 0.7964, "mae": 3.3026, "F": 216.9, "p": 1.1356943464878818e-98}, "5": {"f": ["NOX", "RM", "DIS", "PTRATIO", "LSTAT"], "rmse": 3.5349, "r2": 0.8637, "adj": 0.8566, "mae": 2.8237, "F": 285.95, "p": 2.6538773577379355e-129}, "6": {"f": ["NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.4551, "r2": 0.8698, "adj": 0.8616, "mae": 2.7601, "F": 263.96, "p": 3.526711518083028e-135}, "7": {"f": ["ZN", "NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.2906, "r2": 0.8819, "adj": 0.8731, "mae": 2.5997, "F": 238.07, "p": 1.242012429297234e-137}, "8": {"f": ["ZN", "CHAS", "NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.1863, "r2": 0.8893, "adj": 0.8798, "mae": 2.492, "F": 219.47, "p": 3.167840968931237e-140}, "9": {"f": ["CRIM", "ZN", "CHAS", "NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.0412, "r2": 0.8991, "adj": 0.8893, "mae": 2.4082, "F": 198.91, "p": 1.4260011423205796e-140}, "10": {"f": ["CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.0121, "r2": 0.9011, "adj": 0.8902, "mae": 2.3639, "F": 180.03, "p": 5.58424476605164e-140}, "11": {"f": ["CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.0262, "r2": 0.9001, "adj": 0.8879, "mae": 2.3656, "F": 163.46, "p": 6.231326818932881e-139}, "12": {"f": ["CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", "DIS", "TAX", "PTRATIO", "B", "LSTAT"], "rmse": 3.0285, "r2": 0.9, "adj": 0.8865, "mae": 2.3679, "F": 149.47, "p": 8.04864769226445e-138}, "13": {"f": ["CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE", "DIS", "RAD", "TAX", "PTRATIO", "B", "LSTAT"], "rmse": 3.0085, "r2": 0.9013, "adj": 0.8867, "mae": 2.3535, "F": 138.31, "p": 4.515702542638232e-137}}, "RFE": {"1": {"f": ["LSTAT"], "rmse": 6.9954, "r2": 0.4663, "adj": 0.461, "mae": 5.6852, "F": 215.18, "p": 2.5333110268086736e-39}, "2": {"f": ["LSTAT", "DIS"], "rmse": 6.0963, "r2": 0.5947, "adj": 0.5865, "mae": 4.933, "F": 177.94, "p": 4.850929661733014e-56}, "3": {"f": ["LSTAT", "DIS", "RM"], "rmse": 5.0446, "r2": 0.7225, "adj": 0.714, "mae": 4.0798, "F": 192.41, "p": 3.1736540469312096e-77}, "4": {"f": ["LSTAT", "DIS", "RM", "PTRATIO"], "rmse": 4.549, "r2": 0.7743, "adj": 0.765, "mae": 3.7052, "F": 225.94, "p": 4.185734150500084e-101}, "5": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX"], "rmse": 3.5349, "r2": 0.8637, "adj": 0.8566, "mae": 2.8237, "F": 285.95, "p": 2.653877357737736e-129}, "6": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B"], "rmse": 3.4551, "r2": 0.8698, "adj": 0.8616, "mae": 2.7601, "F": 263.96, "p": 3.5267115180832185e-135}, "7": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD"], "rmse": 3.4562, "r2": 0.8697, "adj": 0.86, "mae": 2.7449, "F": 226.11, "p": 4.439620619702139e-134}, "8": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX"], "rmse": 3.4428, "r2": 0.8707, "adj": 0.8596, "mae": 2.7434, "F": 197.89, "p": 4.468993726706271e-133}, "9": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX", "ZN"], "rmse": 3.2792, "r2": 0.8827, "adj": 0.8713, "mae": 2.5901, "F": 184.92, "p": 1.6333936563053697e-135}, "10": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX", "ZN", "CHAS"], "rmse": 3.1694, "r2": 0.8905, "adj": 0.8784, "mae": 2.4761, "F": 175.53, "p": 3.2313669747272325e-138}, "11": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX", "ZN", "CHAS", "CRIM"], "rmse": 3.023, "r2": 0.9003, "adj": 0.8882, "mae": 2.3988, "F": 162.73, "p": 1.279408269506609e-138}, "12": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX", "ZN", "CHAS", "CRIM", "INDUS"], "rmse": 2.9953, "r2": 0.9022, "adj": 0.889, "mae": 2.3535, "F": 150.03, "p": 4.406075586951745e-138}, "13": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "RAD", "TAX", "ZN", "CHAS", "CRIM", "INDUS", "AGE"], "rmse": 3.0085, "r2": 0.9013, "adj": 0.8867, "mae": 2.3535, "F": 138.31, "p": 4.515702542637691e-137}}, "ElasticNet": {"1": {"f": ["LSTAT"], "rmse": 6.9954, "r2": 0.4663, "adj": 0.461, "mae": 5.6852, "F": 215.18, "p": 2.5333110268086736e-39}, "2": {"f": ["LSTAT", "DIS"], "rmse": 6.0963, "r2": 0.5947, "adj": 0.5865, "mae": 4.933, "F": 177.94, "p": 4.850929661733014e-56}, "3": {"f": ["LSTAT", "DIS", "RM"], "rmse": 5.0446, "r2": 0.7225, "adj": 0.714, "mae": 4.0798, "F": 192.41, "p": 3.1736540469312096e-77}, "4": {"f": ["LSTAT", "DIS", "RM", "PTRATIO"], "rmse": 4.549, "r2": 0.7743, "adj": 0.765, "mae": 3.7052, "F": 225.94, "p": 4.185734150500084e-101}, "5": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX"], "rmse": 3.5349, "r2": 0.8637, "adj": 0.8566, "mae": 2.8237, "F": 285.95, "p": 2.653877357737736e-129}, "6": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B"], "rmse": 3.4551, "r2": 0.8698, "adj": 0.8616, "mae": 2.7601, "F": 263.96, "p": 3.5267115180832185e-135}, "7": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN"], "rmse": 3.2906, "r2": 0.8819, "adj": 0.8731, "mae": 2.5997, "F": 238.07, "p": 1.242012429297234e-137}, "8": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS"], "rmse": 3.1863, "r2": 0.8893, "adj": 0.8798, "mae": 2.492, "F": 219.47, "p": 3.167840968931236e-140}, "9": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS", "CRIM"], "rmse": 3.0412, "r2": 0.8991, "adj": 0.8893, "mae": 2.4082, "F": 198.91, "p": 1.4260011423205796e-140}, "10": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS", "CRIM", "INDUS"], "rmse": 3.0121, "r2": 0.9011, "adj": 0.8902, "mae": 2.3639, "F": 180.03, "p": 5.584244766052148e-140}, "11": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE"], "rmse": 3.0262, "r2": 0.9001, "adj": 0.8879, "mae": 2.3656, "F": 163.46, "p": 6.231326818932881e-139}, "12": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD"], "rmse": 3.0306, "r2": 0.8998, "adj": 0.8863, "mae": 2.3701, "F": 149.54, "p": 7.488077988537021e-138}, "13": {"f": ["LSTAT", "DIS", "RM", "PTRATIO", "NOX", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD", "TAX"], "rmse": 3.0085, "r2": 0.9013, "adj": 0.8867, "mae": 2.3535, "F": 138.31, "p": 4.515702542637553e-137}}, "Exhaustive Search": {"1": {"f": ["LSTAT"], "rmse": 6.9954, "r2": 0.4663, "adj": 0.461, "mae": 5.6852, "F": 215.18, "p": 2.5333110268086736e-39}, "2": {"f": ["NOX", "LSTAT"], "rmse": 6.3041, "r2": 0.5666, "adj": 0.5578, "mae": 4.8563, "F": 174.82, "p": 2.5514150135443486e-55}, "3": {"f": ["RM", "DIS", "LSTAT"], "rmse": 5.0446, "r2": 0.7225, "adj": 0.714, "mae": 4.0798, "F": 192.41, "p": 3.1736540469312096e-77}, "4": {"f": ["RM", "DIS", "PTRATIO", "LSTAT"], "rmse": 4.549, "r2": 0.7743, "adj": 0.765, "mae": 3.7052, "F": 225.94, "p": 4.185734150500084e-101}, "5": {"f": ["NOX", "RM", "DIS", "PTRATIO", "LSTAT"], "rmse": 3.5349, "r2": 0.8637, "adj": 0.8566, "mae": 2.8237, "F": 285.95, "p": 2.6538773577379355e-129}, "6": {"f": ["NOX", "RM", "DIS", "PTRATIO", "B", "LSTAT"], "rmse": 3.4551, "r2": 0.8698, "adj": 0.8616, "mae": 2.7601, "F": 263.96, "p": 3.526711518083028e-135}, "7": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN"], "rmse": 3.2906, "r2": 0.8819, "adj": 0.8731, "mae": 2.5997, "F": 238.07, "p": 1.2420124292972688e-137}, "8": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS"], "rmse": 3.1863, "r2": 0.8893, "adj": 0.8798, "mae": 2.492, "F": 219.47, "p": 3.167840968931237e-140}, "9": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM"], "rmse": 3.0412, "r2": 0.8991, "adj": 0.8893, "mae": 2.4082, "F": 198.91, "p": 1.4260011423205796e-140}, "10": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS"], "rmse": 3.0121, "r2": 0.9011, "adj": 0.8902, "mae": 2.3639, "F": 180.03, "p": 5.58424476605164e-140}, "11": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE"], "rmse": 3.0262, "r2": 0.9001, "adj": 0.8879, "mae": 2.3656, "F": 163.46, "p": 6.231326818932881e-139}, "12": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD"], "rmse": 3.0306, "r2": 0.8998, "adj": 0.8863, "mae": 2.3701, "F": 149.54, "p": 7.488077988536349e-138}, "13": {"f": ["LSTAT", "NOX", "DIS", "RM", "PTRATIO", "B", "ZN", "CHAS", "CRIM", "INDUS", "AGE", "RAD", "TAX"], "rmse": 3.0085, "r2": 0.9013, "adj": 0.8867, "mae": 2.3535, "F": 138.31, "p": 4.515702542638232e-137}}}};
+const DATASETS={
+  startup:{data:STARTUP_DATA,onCls:'on-s',heroCls:'startup',nf:5,
+    title:'&#128640; 50 Startups — Feature Selection Explorer',
+    desc:'Compare 5 feature selection algorithms across k = 1…5. See the bias–variance tradeoff and find the parsimonious sweet spot.',
+    info:'<div class="info-box"><strong>50 Startups Dataset:</strong> 50 new-company observations. Target: <strong>Profit</strong>. Features: R&amp;D Spend, Administration, Marketing Spend, State (one-hot encoded). Linear model achieves R&sup2; ≈ 0.93. R&amp;D Spend dominates.</div>',
+    colors:['#4f46e5','#ea580c','#16a34a','#dc2626','#9333ea'],
+    fmtR:x=>'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
+    unit:'Profit ($)'},
+  boston:{data:BOSTON_DATA,onCls:'on-b',heroCls:'boston',nf:13,
+    title:'&#127968; Boston Housing — Feature Selection Explorer',
+    desc:'Compare 5 feature selection algorithms across k = 1≢13 features. Observe TAX/RAD multicollinearity (VIF >26) and find the parsimonious sweet spot.',
+    info:'<div class="info-box"><strong>Boston Housing Dataset:</strong> 506 district observations. Target: <strong>MEDV</strong> (median house value in $1000s). 13 Features. <strong>Multicollinearity:</strong> TAX &amp; RAD have VIF >26. Linear model achieves R&sup2; ≈ 0.90. LSTAT and RM are the strongest predictors.</div>',
+    colors:['#0d9488','#ea580c','#16a34a','#dc2626','#9333ea'],
+    fmtR:x=>x.toFixed(2)+'K',
+    unit:'MEDV ($1000s)'},
+};
+let curDS='startup',DS,D,M,NF,COL,cur,k,cmp;
+function initDS(){
+  DS=DATASETS[curDS];D=DS.data;M=D.order;
+  NF=D.n_features_total||DS.nf;
+  if(!D.n_features_total){NF=0;M.forEach(m=>{Object.keys(D.m[m]).forEach(ki=>{NF=Math.max(NF,parseInt(ki))})});}
+  COL=DS.colors;cmp=false;cur=M[0];k=best(cur);
+  document.getElementById('heroDiv').className='hero '+DS.heroCls;
+  document.getElementById('heroTitle').innerHTML=DS.title;
+  document.getElementById('heroDesc').textContent=DS.desc;
+  document.getElementById('infoBox').innerHTML=DS.info;
+  render();
+}
+function switchDS(v){curDS=v;initDS();}
+const $=s=>document.getElementById(s);
+const best=m=>{let b=1;for(let i=2;i<=NF;i++)if(D.m[m][i]&&D.m[m][i].rmse<D.m[m][b].rmse)b=i;return b};
+function chart(id,series,key,hl){
+ const W=460,H=250,L=58,R=14,T=12,B=34;
+ const all=series.flatMap(s=>s.v.filter(v=>v!=null));
+ let lo=Math.min(...all),hi=Math.max(...all),pad=(hi-lo||1)*.15;lo-=pad;hi+=pad;
+ const x=i=>L+(i-1)*(W-L-R)/Math.max(NF-1,1),y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+ let s='';
+ for(let t=0;t<=4;t++){const v=lo+(hi-lo)*t/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".1"/><text x="${L-5}" y="${y(v)+4}" text-anchor="end">${key=='rmse'?v.toFixed(1):v.toFixed(3)}</text>`}
+ for(let i=1;i<=NF;i++)s+=`<text x="${x(i)}" y="${H-12}" text-anchor="middle">${i}</text>`;
+ s+=`<text x="${(L+W-R)/2}" y="${H-1}" text-anchor="middle">Number of Features k</text>`;
+ if(hl)s+=`<line x1="${x(hl)}" x2="${x(hl)}" y1="${T}" y2="${H-B}" stroke="${COL[0]}" stroke-dasharray="4 3" opacity=".7"/>`;
+ series.forEach(se=>{
+  const pts=se.v.map((v,i)=>v!=null?x(i+1)+','+y(v):null).filter(Boolean);
+  if(pts.length>1)s+=`<polyline fill="none" stroke="${se.c}" stroke-width="2.5" points="${pts.join(' ')}"/>`;
+  se.v.forEach((v,i)=>{if(v!=null)s+=`<circle cx="${x(i+1)}" cy="${y(v)}" r="${hl==i+1?6:4}" fill="${se.c}" stroke="var(--bg)" stroke-width="1.5"><title>${se.n} k=${i+1}: ${v}</title></circle>`})});
+ $(id).innerHTML=s}
+function render(){
+ const mb=$('mb');mb.innerHTML='';
+ M.forEach(m=>{const b=document.createElement('button');b.textContent=m;b.className='ab';
+  if(!cmp&&m==cur)b.className='ab '+DS.onCls;
+  b.onclick=()=>{cmp=false;cur=m;k=best(m);render()};mb.append(b)});
+ const cb=document.createElement('button');cb.className='ab';cb.textContent='\u2696\uFE0F Compare All';
+ if(cmp)cb.className='ab '+DS.onCls;cb.onclick=()=>{cmp=true;render()};mb.append(cb);
+ $('kwrap').style.display=$('single').style.display=cmp?'none':'';
+ const gm=M.reduce((a,m)=>D.m[m][best(m)].rmse<D.m[a][best(a)].rmse?m:a,M[0]);
+ const gb=D.m[gm][best(gm)],fn=D.m[gm][NF];
+ $('pills').innerHTML=[`&#128202; ${D.n_test} test samples`,`&#9889; 5 Selection Methods`,`&#11088; k=${best(gm)} RMSE=${gb.rmse.toFixed(2)} (${gm})`,`&#9888; Full k=${NF}: RMSE=${fn.rmse.toFixed(2)}`].map(t=>`<span class="pill">${t}</span>`).join('');
+ $('foot').textContent=`Metrics on held-out test set (n=${D.n_test}). Data: ${D.src}.`;
+ if(cmp){
+  chart('c1',M.map((m,i)=>({n:m,c:COL[i],v:Array.from({length:NF},(_,j)=>D.m[m][j+1]?.rmse??null)})),'rmse');
+  chart('c2',M.map((m,i)=>({n:m,c:COL[i],v:Array.from({length:NF},(_,j)=>D.m[m][j+1]?.r2??null)})),'r2');
+  $('leg').innerHTML=M.map((m,i)=>`<span><i style="background:${COL[i]}"></i>${m}</span>`).join('');
+  $('tl').textContent='Test RMSE by method and k (\u2605 = best per method)';
+  $('tb').innerHTML='<table><tr><th>Method</th>'+Array.from({length:NF},(_,j)=>`<th>k=${j+1}</th>`).join('')+'</tr>'+M.map(m=>`<tr><td>${m}</td>`+Array.from({length:NF},(_,j)=>`<td>${D.m[m][j+1]?D.m[m][j+1].rmse.toFixed(2)+(best(m)==j+1?' \u2605':''):'-'}</td>`).join('')+'</tr>').join('')+'</table>';return}
+ const b=best(cur),r=D.m[cur][k];
+ $('kb').innerHTML='';
+ for(let i=1;i<=NF;i++){const e=document.createElement('button');e.className='ab';
+  if(i==k)e.className+=' '+DS.onCls;
+  if(i==b)e.className+=' best';else if(i==NF&&b<NF)e.className+=' cliff';
+  e.innerHTML=`k = ${i}`+(i==b?' \u2605 <small>Optimal</small>':i==NF&&b<NF?' \u26A0 <small>Full</small>':'');
+  e.onclick=()=>{k=i;render()};$('kb').append(e)}
+ $('kpi').innerHTML=[
+  ['Test RMSE',r.rmse.toFixed(2),k==b?'Best RMSE for this method':'Lower is better'],
+  ['R\u00B2 Score',r.r2.toFixed(4),`Explains ${(r.r2*100).toFixed(1)}% of variance`],
+  ['Adjusted R\u00B2',r.adj.toFixed(4),'Penalizes redundant parameters'],
+  ['MAE',r.mae.toFixed(2),DS.unit],
+  ['F-statistic',r.F.toFixed(1),r.p<1e-4?'p < 0.0001':'p = '+r.p.toFixed(4)],
+ ].map(a=>`<div class="card"><div class="lbl">${a[0]}</div><span class="kval">${a[1]}</span><span class="ksub">${a[2]}</span></div>`).join('');
+ $('plbl').textContent=`Active predictors (${k})`;$('pred').innerHTML=r.f.map(f=>`<span class="chip">${f}</span>`).join('');
+ const n=$('note');
+ if(k==b){n.className='note g';n.textContent=`\u2B50 Parsimony: ${k} feature${k>1?'s':''} achieve minimum RMSE (${r.rmse.toFixed(2)}) with R\u00B2=${r.r2.toFixed(4)} for ${cur}.`}
+ else{const d=r.rmse-D.m[cur][b].rmse;n.className='note w';n.textContent=`\u26A0 RMSE is ${Math.abs(d).toFixed(2)} ${d>0?'higher':'lower'} than sweet spot (k=${b}). ${k>b?'Extra features add variance.':'Too few features underfit.'}`}
+ const sv=j=>D.m[cur][j];
+ chart('c1',[{n:cur,c:COL[M.indexOf(cur)],v:Array.from({length:NF},(_,j)=>sv(j+1)?.rmse??null)}],'rmse',k);
+ chart('c2',[{n:cur,c:COL[M.indexOf(cur)],v:Array.from({length:NF},(_,j)=>sv(j+1)?.r2??null)}],'r2',k);
+ $('leg').innerHTML=`<span><i style="background:${COL[M.indexOf(cur)]}"></i>${cur}</span>`;
+ $('tl').textContent=`${cur}: selected features by k`;
+ $('tb').innerHTML='<table><tr><th>k</th><th>Selected features</th><th>RMSE</th><th>R\u00B2</th><th>Adj R\u00B2</th></tr>'+Array.from({length:NF},(_,j)=>j+1).map(j=>`<tr class="${j==k?'sel':''}"><td>${j}${j==b?' \u2605':''}</td><td>${sv(j)?.f.join(', ')??'-'}</td><td>${sv(j)?.rmse.toFixed(2)??'-'}</td><td>${sv(j)?.r2.toFixed(4)??'-'}</td><td>${sv(j)?.adj.toFixed(4)??'-'}</td></tr>`).join('')+'</table>'}
+initDS();
+
+</script>
+</body></html>

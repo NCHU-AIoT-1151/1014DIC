@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>50 Startups MLR Explorer</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f7fb;--card:#fff;--fg:#1a1b2e;--muted:#6b7090;--line:#e2e4f0;--acc:#4f46e5;--good:#059669;--goodbg:#d1fae5;--warn:#b45309;--warnbg:#fef3c7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0f1d;--card:#171830;--fg:#eceefb;--muted:#9aa0c4;--line:#2a2c4d;--acc:#8b85ff;--good:#34d399;--goodbg:#064e3b;--warn:#fbbf24;--warnbg:#4a3305}}
+:root[data-theme="dark"]{--bg:#0e0f1d;--card:#171830;--fg:#eceefb;--muted:#9aa0c4;--line:#2a2c4d;--acc:#8b85ff;--good:#34d399;--goodbg:#064e3b;--warn:#fbbf24;--warnbg:#4a3305}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.hero{background:linear-gradient(135deg,#1e1b6b,#4338ca);color:#fff;border-radius:16px;padding:24px}
+.hero h2{margin:0 0 8px;font-size:24px}.hero p{margin:0 0 14px;opacity:.92;max-width:720px}
+.pill{display:inline-block;background:rgba(255,255,255,.15);border-radius:99px;padding:4px 12px;font-size:12px;margin:0 6px 6px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:16px}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+button.best{border-color:var(--good)}button.best.on{background:var(--good)}
+button.cliff{border-color:var(--warn)}button.cliff.on{background:var(--warn);color:#fff}
+button small{opacity:.75;margin-left:4px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.kpi .card{margin:0}.kpi b{display:block;font-size:24px;margin:4px 0}.kpi span{font-size:12px;color:var(--muted)}
+.chip{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px 10px;margin:0 6px 4px 0;font-size:13px}
+.note{border-radius:10px;padding:10px 14px;font-size:13px;margin-top:10px}
+.note.g{background:var(--goodbg);color:var(--good)}.note.w{background:var(--warnbg);color:var(--warn)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+svg{width:100%;height:auto;display:block}svg text{fill:var(--muted);font-size:11px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr.sel td{background:var(--bg);font-weight:600}.foot{color:var(--muted);font-size:12px;margin-top:20px}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin-top:6px}.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+</style></head><body><div class="w">
+<h1>📈 50 Startups Multiple Linear Regression Explorer</h1>
+<div class="sub">CRISP-DM · Feature Selection &amp; Parsimony Analysis</div>
+<div class="hero"><h2>Feature Selection &amp; Parsimony Analysis</h2>
+<p>Compare 5 feature selection algorithms across feature counts k = 1…5. See the bias–variance tradeoff: find the sweet spot, and see where extra features start to hurt.</p>
+<div id="pills"></div></div>
+<div class="card"><div class="lbl">1. Select feature selection algorithm</div><div class="row" id="mb"></div>
+<div id="kwrap"><div class="lbl">2. Number of features (k = 1 to 5)</div><div class="row" id="kb"></div></div></div>
+<div id="single"><div class="kpi" id="kpi"></div>
+<div class="card"><div class="lbl" id="plbl"></div><div id="pred"></div><div class="note" id="note"></div></div></div>
+<div class="card"><div class="charts"><div><div class="lbl">RMSE by number of features (lower is better)</div><svg id="c1" viewBox="0 0 460 250"></svg></div>
+<div><div class="lbl">R² by number of features (higher is better)</div><svg id="c2" viewBox="0 0 460 250"></svg></div></div><div class="leg" id="leg"></div></div>
+<div class="card"><div class="lbl" id="tl"></div><div class="sc" id="tb"></div></div>
+<div class="foot" id="foot"></div></div>
+<script>
+const D=__DATA__,M=D.order,COL=['#4f46e5','#ea580c','#16a34a','#dc2626','#9333ea'];
+const $=s=>document.getElementById(s);
+const money=x=>'$'+x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const best=m=>{let b=1;for(let i=2;i<=5;i++)if(D.m[m][i].rmse<D.m[m][b].rmse)b=i;return b};
+const gm=M.reduce((a,m)=>D.m[m][best(m)].rmse<D.m[a][best(a)].rmse?m:a,M[0]);
+let cur=M[0],k=best(cur),cmp=false;
+function chart(id,series,key,hl){
+ const W=460,H=250,L=52,R=14,T=12,B=34,all=series.flatMap(s=>s.v);
+ let lo=Math.min(...all),hi=Math.max(...all),pad=(hi-lo||1)*.15;lo-=pad;hi+=pad;
+ const x=i=>L+(i-1)*(W-L-R)/4,y=v=>T+(hi-v)*(H-T-B)/(hi-lo);let s='';
+ for(let t=0;t<=4;t++){const v=lo+(hi-lo)*t/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".12"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${key=='rmse'?Math.round(v):v.toFixed(3)}</text>`}
+ for(let i=1;i<=5;i++)s+=`<text x="${x(i)}" y="${H-12}" text-anchor="middle">${i}</text>`;
+ s+=`<text x="${(L+W-R)/2}" y="${H-1}" text-anchor="middle">Number of Features</text>`;
+ if(hl)s+=`<line x1="${x(hl)}" x2="${x(hl)}" y1="${T}" y2="${H-B}" stroke="#4f46e5" stroke-dasharray="4 3" opacity=".6"/>`;
+ series.forEach(se=>{s+=`<polyline fill="none" stroke="${se.c}" stroke-width="2" points="${se.v.map((v,i)=>x(i+1)+','+y(v)).join(' ')}"/>`+se.v.map((v,i)=>`<circle cx="${x(i+1)}" cy="${y(v)}" r="${hl==i+1?6:4}" fill="${se.c}"><title>${se.n} k=${i+1}: ${v}</title></circle>`).join('')});
+ $(id).innerHTML=s}
+function render(){
+ const mb=$('mb');mb.innerHTML='';
+ M.forEach(m=>{const b=document.createElement('button');b.textContent=m;if(!cmp&&m==cur)b.className='on';b.onclick=()=>{cmp=false;cur=m;k=best(m);render()};mb.append(b)});
+ const cb=document.createElement('button');cb.textContent='⚖️ Compare All 5 Methods';if(cmp)cb.className='on';cb.onclick=()=>{cmp=true;render()};mb.append(cb);
+ $('kwrap').style.display=$('single').style.display=cmp?'none':'';
+ const gb=D.m[gm][best(gm)],f5=D.m[gm][5];
+ $('pills').innerHTML=[`🗂 50 Startups Dataset`,`⚡ 5 Selection Methods`,`⭐ Global Sweet Spot: k=${best(gm)} (${money(gb.rmse)} RMSE, ${gm})`,`⚠ k=5 Full Model: ${money(f5.rmse)} RMSE`].map(t=>`<span class="pill">${t}</span>`).join('');
+ $('foot').textContent=`Metrics are computed on a held-out test set (n=${D.n_test}); F-statistic from the training fit. Data: ${D.src}. Rebuild with your own CSV using build_explorer.py.`;
+ if(cmp){
+  chart('c1',M.map((m,i)=>({n:m,c:COL[i],v:[1,2,3,4,5].map(j=>D.m[m][j].rmse)})),'rmse');
+  chart('c2',M.map((m,i)=>({n:m,c:COL[i],v:[1,2,3,4,5].map(j=>D.m[m][j].r2)})),'r2');
+  $('leg').innerHTML=M.map((m,i)=>`<span><i style="background:${COL[i]}"></i>${m}</span>`).join('');
+  $('tl').textContent='Test RMSE by method and k (★ = best per method)';
+  $('tb').innerHTML='<table><tr><th>Method</th>'+[1,2,3,4,5].map(j=>`<th>k=${j}</th>`).join('')+'</tr>'+M.map(m=>`<tr><td>${m}</td>`+[1,2,3,4,5].map(j=>`<td>${money(D.m[m][j].rmse)}${best(m)==j?' ★':''}</td>`).join('')+'</tr>').join('')+'</table>';return}
+ const b=best(cur),r=D.m[cur][k];
+ $('kb').innerHTML='';
+ for(let i=1;i<=5;i++){const e=document.createElement('button');
+  e.className=(i==k?'on ':'')+(i==b?'best':i==5&&b<5?'cliff':'');
+  e.innerHTML=`k = ${i}`+(i==b?' ★ <small>Optimal (Min RMSE)</small>':i==5&&b<5?' ⚠ <small>Full Model</small>':'');
+  e.onclick=()=>{k=i;render()};$('kb').append(e)}
+ $('kpi').innerHTML=[['Test RMSE',money(r.rmse),k==b?'Best across k for this method':'Lower is better'],['R² Score',r.r2.toFixed(4),`Explains ${(r.r2*100).toFixed(2)}% of variance`],
+  ['Adjusted R²',r.adj.toFixed(4),'Penalizes redundant parameters'],['Mean Absolute Error',money(r.mae),'Average prediction error'],
+  ['F-statistic',r.F,r.p<1e-4?'p < 0.0001':'p = '+r.p.toFixed(4)]].map(a=>`<div class="card"><div class="lbl">${a[0]}</div><b>${a[1]}</b><span>${a[2]}</span></div>`).join('');
+ $('plbl').textContent=`Active predictors (${k})`;$('pred').innerHTML=r.f.map(f=>`<span class="chip">${f}</span>`).join('');
+ const n=$('note');
+ if(k==b){n.className='note g';n.textContent=`⭐ Occam's Razor: ${k} feature${k>1?'s':''} give the minimum test RMSE (${money(r.rmse)}) and R² of ${r.r2.toFixed(4)} for ${cur}.`}
+ else{const d=r.rmse-D.m[cur][b].rmse;n.className='note w';n.textContent=`⚠ RMSE is ${money(Math.abs(d))} ${d>0?'higher':'lower'} than this method's sweet spot (k=${b}). ${k>b?'Extra features add variance without reducing error.':'Too few features underfit.'}`}
+ const sv=j=>D.m[cur][j];
+ chart('c1',[{n:cur,c:COL[M.indexOf(cur)],v:[1,2,3,4,5].map(j=>sv(j).rmse)}],'rmse',k);
+ chart('c2',[{n:cur,c:COL[M.indexOf(cur)],v:[1,2,3,4,5].map(j=>sv(j).r2)}],'r2',k);
+ $('leg').innerHTML=`<span><i style="background:${COL[M.indexOf(cur)]}"></i>${cur}</span>`;
+ $('tl').textContent=`${cur}: selected features by k`;
+ $('tb').innerHTML='<table><tr><th>k</th><th>Selected features</th><th>RMSE</th><th>R²</th></tr>'+[1,2,3,4,5].map(j=>`<tr class="${j==k?'sel':''}"><td>${j}${j==b?' ★':''}</td><td>${sv(j).f.join(', ')}</td><td>${money(sv(j).rmse)}</td><td>${sv(j).r2.toFixed(4)}</td></tr>`).join('')+'</table>'}
+render();
+</script></body></html>
